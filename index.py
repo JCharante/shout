@@ -21,4 +21,4 @@ def incoming_sms():
     return "I don't know how to reply to your text message"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
