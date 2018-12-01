@@ -1,7 +1,9 @@
 import os
-from sqlalchemy import Column, Integer, String, Boolean, create_engine, Text, DATETIME, JSON, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, create_engine, Text, DATETIME, JSON, ForeignKey, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
+from random import randint
+from uuid import uuid4
 
 Base = declarative_base()
 
@@ -11,6 +13,16 @@ class UserV1(Base):
     phoneNumber = Column(Text)
     shoutRange = Column(Integer)
     haveSignedUp = Column(Boolean)
+    longitude = Column(Float)
+    latitude = Column(Float)
+
+class WebSessionV1(Base):
+    __tablename__ = 'WebSessionV1'
+    id = Column(Integer, primary_key=True)
+    sessionId = Column(String(36)) # uuid4
+    secretCode = Column(Integer)
+    pairedWithPhoneNumber = Column(Boolean)
+    phoneNumber = Column(Text)
 
 
 engine = create_engine(os.environ['DBA'])
@@ -18,7 +30,7 @@ Base.metadata.create_all(engine)
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, jsonify
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 
@@ -27,6 +39,31 @@ auth_token = os.environ['TWILIO_AUTH_TOKEN']
 client = Client(account_sid, auth_token)
 
 app = Flask(__name__)
+
+def generateSecret():
+    return randint(1000, 9999)
+
+@app.route("/web/create_session")
+def web_create_session():
+    session = DBSession()
+
+    secretCode = generateSecret()
+    sessionId = str(uuid4())
+
+    response = {
+        secretCode: secretCode,
+        sessionId: sessionId
+    }
+
+    session.add(WebSessionV1(
+        sessionId=sessionId,
+        secretCode=secretCode,
+        pairedWithPhoneNumber=False,
+        phoneNumber=''
+    ))
+    session.commit()
+    session.close()
+    return jsonify(**response)
 
 
 @app.route("/sms", methods=['GET', 'POST'])
@@ -89,21 +126,6 @@ def incoming_sms():
         response.message("Sorry, only global shouts are available at the moment.")
         return str(response)
 
-
-    """
-    body = request.values.get('Body', None)
-    message = client.messages \
-        .create(
-        body=f"From {request.values.get('From', 'someone')}: {request.values.get('Body', '')}",
-        from_=os.environ['SHOUT_NUM'],
-        to=os.environ['TRANG_NUM']
-    )
-    """
-    session.close()
-    resp = MessagingResponse()
-    resp.message("I don't know how to reply to your text message")
-
-    return str(resp)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)
