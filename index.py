@@ -86,7 +86,7 @@ class InvalidUsage(Exception):
 @app.route('/web/status', methods=['POST'])
 def web_status():
     session = DBSession()
-    json_data = request.json
+    json_data = request.get_json()
     web_session = session.query(WebSessionV1).filter_by(sessionId=json_data.get('sessionId')).first() # type: WebSessionV1
     if web_session is None:
         session.close()
