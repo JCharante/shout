@@ -5,6 +5,9 @@ from sqlalchemy.orm import sessionmaker, relationship
 from random import randint
 from uuid import uuid4
 import geopy.distance
+import http.client
+import urllib.parse
+import re
 
 Base = declarative_base()
 
@@ -44,6 +47,19 @@ app = Flask(__name__)
 
 def generateSecret():
     return randint(1000, 9999)
+
+def unshorten_url(url):
+    parsed = urllib.parse.urlparse(url)
+    h = http.client.HTTPConnection(parsed.netloc)
+    resource = parsed.path
+    if parsed.query != "":
+        resource += "?" + parsed.query
+    h.request('HEAD', resource )
+    response = h.getresponse()
+    if response.status/100 == 3 and response.getheader('Location'):
+        return unshorten_url(response.getheader('Location')) # changed to process chains of short urls
+    else:
+        return url
 
 
 @app.route('/')
@@ -211,6 +227,17 @@ def incoming_sms():
                 "If you want to update your location, you must currently use the web companion. Visit shout.jcharante.com"
             ]))
             return str(response)
+    elif textBody[0:22] == "https://www.google.com":
+        expandedUrl = unshorten_url(textBody.split(' ')[0])
+        temp = re.search('@([0-9]?[0-9]\.[0-9]*),([0-9]?[0-9]\.[0-9]*)', expandedUrl, re.DOTALL)
+        latitude = temp.groups()[0]
+        longitude = temp.groups()[1]
+        userInDB.latitude = latitude
+        userInDB.longitude = longitude
+        session.close()
+        response = MessagingResponse()
+        response.message("Updated your location. Thanks!")
+        return str(response)
 
     # user is signed up and is trying to send a shout
 
