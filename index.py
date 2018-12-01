@@ -32,7 +32,8 @@ app = Flask(__name__)
 @app.route("/sms", methods=['GET', 'POST'])
 def incoming_sms():
     phoneNumberFromTwilio = request.values.get('From', None)
-    if phoneNumberFromTwilio is None:
+    textBody = request.values.get('Body', None)  # type: str
+    if phoneNumberFromTwilio is None or textBody is None:
         return "Stop forging requests"
 
     session = DBSession()
@@ -49,8 +50,8 @@ def incoming_sms():
         response = MessagingResponse()
         response.message("Hey this is Shout! Do you want to sign up to receive shouts? If so, reply w/ SIGNUP")
         return str(response)
+
     if userInDB.haveSignedUp is False:
-        textBody = request.values.get('Body', None) # type: str
         if textBody is not None:
             if textBody.lower() == "signup":
                 userInDB.haveSignedUp = True
@@ -65,6 +66,28 @@ def incoming_sms():
                 response = MessagingResponse()
                 response.message("Hey, you haven't signed up yet to receive or send shouts. Please reply w/ SIGNUP")
                 return str(response)
+
+    if userInDB.shoutRange == -1:
+        # User has global shout privileges
+        phoneNumbersInRange = []
+        for User in session.query(UserV1).filter_by(haveSignedUp=True).all(): # type: UserV1
+            phoneNumbersInRange.append(User.phoneNumber)
+        session.close()
+        for phoneNumber in phoneNumbersInRange:
+            message = client.messages.create(
+                body=textBody,
+                from_=os.environ['SHOUT_NUM'],
+                to=phoneNumber
+            )
+        response = MessagingResponse()
+        response.message("Shout sent!")
+        return str(response)
+    else :
+        # User has limited-range shout privileges which aren't yet implemented
+        session.close()
+        response = MessagingResponse()
+        response.message("Sorry, only global shouts are available at the moment.")
+        return str(response)
 
 
     """
