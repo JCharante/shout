@@ -7,6 +7,7 @@ Base = declarative_base()
 
 class UserV1(Base):
     __tablename__ = 'UserV1'
+    id = Column(Integer, primary_key=True)
     phoneNumber = Column(Text)
     shoutRange = Column(Integer)
     haveSignedUp = Column(Boolean)
