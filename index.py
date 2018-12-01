@@ -168,7 +168,10 @@ def incoming_sms():
                 session.commit()
                 session.close()
                 response = MessagingResponse()
-                response.message(f"Thanks for signing up. Your shout range is {rangeInMeters}m. Text anytime to send a shout")
+                response.message("\n".join([
+                    f"Thanks for signing up. Your shout range is {rangeInMeters}m.",
+                    "Before you can send or receive shouts, you must set your location. Visit shout.jcharante.com for continue or type !help for further instructions."
+                ]))
                 return str(response)
             else:
                 session.close()
@@ -197,7 +200,15 @@ def incoming_sms():
         else:
             session.close()
             response = MessagingResponse()
-            response.message("Here are the following commands:\n!help - get a list of commands\n!code ____ - enter a code from the web companion\n____ shout something to those in range")
+
+            response.message('\n'.join([
+                "Here are the following commands:",
+                "!help - get a list of commands",
+                "!code ____ - enter a code from the web companion",
+                "____ shout something to those in range",
+                "",
+                "If you want to update your location, you must currently use the web companion. Visit shout.jcharante.com"
+            ]))
             return str(response)
 
     # user is signed up and is trying to send a shout
