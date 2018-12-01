@@ -30,7 +30,7 @@ Base.metadata.create_all(engine)
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 
-from flask import Flask, request, redirect, jsonify
+from flask import Flask, request, redirect, jsonify, render_template
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 
@@ -42,6 +42,10 @@ app = Flask(__name__)
 
 def generateSecret():
     return randint(1000, 9999)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route("/web/create_session")
 def web_create_session():
