@@ -65,6 +65,10 @@ function askServerForNewSession() {
 function askServerForStatus() {
     fetch('/web/status', {
         method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
             sessionId: localStorage.getItem('sessionId')
         })
