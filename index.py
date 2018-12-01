@@ -31,12 +31,13 @@ app = Flask(__name__)
 
 @app.route("/sms", methods=['GET', 'POST'])
 def incoming_sms():
-    session = DBSession()
     phoneNumberFromTwilio = request.values.get('From', None)
     if phoneNumberFromTwilio is None:
         return "Stop forging requests"
 
-    userInDB = session.query(UserV1).filter_by(phoneNumber=phoneNumberFromTwilio).first()
+    session = DBSession()
+
+    userInDB = session.query(UserV1).filter_by(phoneNumber=phoneNumberFromTwilio).first() # type: UserV1
     if userInDB is None:
         session.add(UserV1(
             phoneNumber=phoneNumberFromTwilio,
@@ -48,6 +49,18 @@ def incoming_sms():
         response = MessagingResponse()
         response.message("Hey this is Shout! Do you want to sign up to receive shouts? If so, reply w/ SIGNUP")
         return str(response)
+    if userInDB.haveSignedUp is False:
+        textBody = request.values.get('Body', None) # type: str
+        if textBody is not None:
+            if textBody.lower() == "SIGNUP":
+                userInDB.haveSignedUp = True
+                rangeInMeters = userInDB.shoutRange
+                session.commit()
+                session.close()
+                response = MessagingResponse()
+                response.message(f"Thanks for signing up. Your shout range is {rangeInMeters}m. Text anytime to send a shout")
+                return str(response)
+
 
     """
     body = request.values.get('Body', None)
@@ -58,6 +71,7 @@ def incoming_sms():
         to=os.environ['TRANG_NUM']
     )
     """
+    session.close()
     resp = MessagingResponse()
     resp.message("I don't know how to reply to your text message")
 
