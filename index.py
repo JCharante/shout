@@ -172,11 +172,14 @@ def incoming_sms():
                 longitude=-1,
                 latitude=-1
             ))
+            session.commit()
+            session.close()
             response.message("\n".join([
                 f"Thanks for signing up. Your shout range is {2000}m.",
                 "Before you can send or receive shouts, you must set your location. Visit shout.jcharante.com to set your location.",
                 "If you need help, reply w/ !help"
             ]))
+            return str(response)
         else:
             session.add(UserV1(
                 phoneNumber=phoneNumberFromTwilio,
