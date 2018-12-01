@@ -52,7 +52,7 @@ def incoming_sms():
     if userInDB.haveSignedUp is False:
         textBody = request.values.get('Body', None) # type: str
         if textBody is not None:
-            if textBody.lower() == "SIGNUP":
+            if textBody.lower() == "signup":
                 userInDB.haveSignedUp = True
                 rangeInMeters = userInDB.shoutRange
                 session.commit()
