@@ -81,14 +81,14 @@ def web_create_session():
     response['secretCode'] = secretCode
 
     jsonData = request.get_json()
-    if request.method == 'POST' and jsonData is not None and (jsonData.get('latitude', -1) != -1 and jsonData.get('latitude', None) is not None) and (jsonData.get('longitude', -1) != -1 and jsonData.get('longitude', None) is not None):
+    if request.method == 'POST' and jsonData is not None and jsonData.get('latitude', None) is not None and jsonData.get('longitude', None) is not None:
         session.add(WebSessionV1(
             sessionId=sessionId,
             secretCode=secretCode,
             pairedWithPhoneNumber=False,
             phoneNumber='',
-            latitude=jsonData.get('latitude', -1),
-            longitude=jsonData.get('longitude', -1)
+            latitude=jsonData.get('latitude', None),
+            longitude=jsonData.get('longitude', None)
         ))
     else:
         session.add(WebSessionV1(
@@ -240,7 +240,7 @@ def incoming_sms():
                 return str(response)
             web_session.pairedWithPhoneNumber = True
             web_session.phoneNumber = phoneNumberFromTwilio
-            if web_session.longitude != -1 and web_session.latitude != -1:
+            if web_session.longitude is not None and web_session.latitude is not None:
                 userInDB.latitude = web_session.latitude
                 userInDB.longitude = web_session.longitude
             session.commit()
