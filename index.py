@@ -202,6 +202,11 @@ def incoming_sms():
             response = MessagingResponse()
             response.message("Connected to Web Companion!")
             return str(response)
+        else:
+            session.close()
+            response = MessagingResponse()
+            response.message("Here are the following commands:\n!help - get a list of commands\n!code ____ - enter a code from the web companion\n____ shout something to those in range")
+            return str(response)
 
     # user is signed up and is trying to send a shout
     if userInDB.shoutRange == -1:
