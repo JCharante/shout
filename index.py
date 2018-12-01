@@ -81,20 +81,28 @@ def web_create_session():
     response['secretCode'] = secretCode
 
     jsonData = request.get_json()
-    if request.method == 'POST' and \
-            jsonData is not None and \
-            jsonData.get('latitude', -1) != -1 and \
-            jsonData.get('latitude', None) is not None and\
-            jsonData.get('longitude', -1) != -1 and \
-            jsonData.get('longitude', None) is not None:
-        session.add(WebSessionV1(
-            sessionId=sessionId,
-            secretCode=secretCode,
-            pairedWithPhoneNumber=False,
-            phoneNumber='',
-            latitude=jsonData.get('latitude', -1),
-            longitude=jsonData.get('longitude', -1)
-        ))
+
+    if request.method == 'POST' and jsonData is not None:
+        latitude = jsonData.get('latitude', -1)
+        longitude = jsonData.get('longitude', -1)
+        if latitude != -1 and type(latitude) == type(-72.3):
+            session.add(WebSessionV1(
+                sessionId=sessionId,
+                secretCode=secretCode,
+                pairedWithPhoneNumber=False,
+                phoneNumber='',
+                latitude=latitude,
+                longitude=longitude
+            ))
+        else:
+            session.add(WebSessionV1(
+                sessionId=sessionId,
+                secretCode=secretCode,
+                pairedWithPhoneNumber=False,
+                phoneNumber='',
+                latitude=-1,
+                longitude=-1
+            ))
     else:
         session.add(WebSessionV1(
             sessionId=sessionId,
