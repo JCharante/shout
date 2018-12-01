@@ -163,18 +163,32 @@ def incoming_sms():
 
     userInDB = session.query(UserV1).filter_by(phoneNumber=phoneNumberFromTwilio).first() # type: UserV1
     if userInDB is None:
-        session.add(UserV1(
-            phoneNumber=phoneNumberFromTwilio,
-            shoutRange=2000,
-            haveSignedUp=False,
-            longitude=-1,
-            latitude=-1
-        ))
-        session.commit()
-        session.close()
         response = MessagingResponse()
-        response.message("Hey this is Shout! Do you want to sign up to send or receive shouts? If so, reply w/ !signup")
-        return str(response)
+        if textBody.lower() == "!signup":
+            session.add(UserV1(
+                phoneNumber=phoneNumberFromTwilio,
+                shoutRange=2000,
+                haveSignedUp=True,
+                longitude=-1,
+                latitude=-1
+            ))
+            response.message("\n".join([
+                f"Thanks for signing up. Your shout range is {2000}m.",
+                "Before you can send or receive shouts, you must set your location. Visit shout.jcharante.com to set your location.",
+                "If you need help, reply w/ !help"
+            ]))
+        else:
+            session.add(UserV1(
+                phoneNumber=phoneNumberFromTwilio,
+                shoutRange=2000,
+                haveSignedUp=False,
+                longitude=-1,
+                latitude=-1
+            ))
+            session.commit()
+            session.close()
+            response.message("Hey this is Shout! Do you want to sign up to send or receive shouts? If so, reply w/ !signup")
+            return str(response)
 
     if userInDB.haveSignedUp is False:
         if textBody is not None:
