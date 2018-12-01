@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from random import randint
 from uuid import uuid4
+import geopy.distance
 
 Base = declarative_base()
 
@@ -40,8 +41,10 @@ client = Client(account_sid, auth_token)
 
 app = Flask(__name__)
 
+
 def generateSecret():
     return randint(1000, 9999)
+
 
 @app.route('/')
 def index():
@@ -67,21 +70,6 @@ def web_create_session():
     session.commit()
     session.close()
     return jsonify(**response)
-
-class InvalidUsage(Exception):
-    status_code = 400
-
-    def __init__(self, message, status_code=None, payload=None):
-        Exception.__init__(self)
-        self.message = message
-        if status_code is not None:
-            self.status_code = status_code
-        self.payload = payload
-
-    def to_dict(self):
-        rv = dict(self.payload or ())
-        rv['message'] = self.message
-        return rv
 
 
 @app.route('/web/update/location/gps', methods=['POST'])
@@ -122,6 +110,7 @@ def web_update_location_gps():
     response['valid'] = True
     return jsonify(**response)
 
+
 @app.route('/web/status', methods=['POST'])
 def web_status():
     session = DBSession()
@@ -146,6 +135,7 @@ def web_status():
 
     return jsonify(**response)
 
+
 @app.route("/sms", methods=['GET', 'POST'])
 def incoming_sms():
     phoneNumberFromTwilio = request.values.get('From', None)
@@ -159,8 +149,10 @@ def incoming_sms():
     if userInDB is None:
         session.add(UserV1(
             phoneNumber=phoneNumberFromTwilio,
-            shoutRange=-1,
-            haveSignedUp=False
+            shoutRange=2000,
+            haveSignedUp=False,
+            longitude=-1,
+            latitude=-1
         ))
         session.commit()
         session.close()
@@ -212,8 +204,20 @@ def incoming_sms():
     if userInDB.shoutRange == -1:
         # User has global shout privileges
         phoneNumbersInRange = []
-        for User in session.query(UserV1).filter_by(haveSignedUp=True).all(): # type: UserV1
-            phoneNumbersInRange.append(User.phoneNumber)
+        if userInDB.shoutRange == -1:
+            for user in session.query(UserV1).filter_by(haveSignedUp=True).all(): # type: UserV1
+                phoneNumbersInRange.append(user.phoneNumber)
+        else:
+            if userInDB.longitude == -1 or userInDB.latitude == -1:
+                session.close()
+                response = MessagingResponse()
+                response.message("Sorry, you must set your location first. Reply w/ !help for a list of commands.")
+                return str(response)
+            shouterCoord = (userInDB.latitude, userInDB.longitude)
+            for user in session.query(UserV1).filter_by(haveSignedUp=True).all(): # type: UserV1
+                userCoord = (user.latitude, user.longitude)
+                if geopy.distance.vincenty(shouterCoord, userCoord).m < userInDB.shoutRange:
+                    phoneNumbersInRange.append(user.phoneNumber)
         session.close()
         for phoneNumber in phoneNumbersInRange:
             message = client.messages.create(
@@ -224,13 +228,7 @@ def incoming_sms():
         response = MessagingResponse()
         response.message("Shout sent!")
         return str(response)
-    else :
-        # User has limited-range shout privileges which aren't yet implemented
-        session.close()
-        response = MessagingResponse()
-        response.message("Sorry, only global shouts are available at the moment.")
-        return str(response)
-
+    return ""
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(threaded=True, host='0.0.0.0', port=5000)
