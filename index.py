@@ -115,6 +115,8 @@ def web_update_location_gps():
     user = session.query(UserV1).filter_by(phoneNumber=phoneNumber).first() # type: UserV1
     user.latitude = json_data.get('latitude', 0)
     user.longitude = json_data.get('longitude', 0)
+    session.commit()
+    session.close()
 
     response = dict()
     response['valid'] = True

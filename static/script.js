@@ -115,8 +115,9 @@ setInterval(function() {
         askServerForStatus()
     }
 }, 3000);
+
 setInterval(function() {
     if (window.authenticated) {
         updateLocationWithServer();
     }
-}, 10000)
+}, 10000);
