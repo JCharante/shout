@@ -75,6 +75,8 @@ function askServerForStatus() {
         if (data.pairedWithPhoneNumber) {
             window.authenticated = true;
             hideSecretCode();
+        } else if (!data.valid) {
+            askServerForNewSession();
         }
     })
 }
