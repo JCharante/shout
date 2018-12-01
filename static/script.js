@@ -119,4 +119,4 @@ setInterval(function() {
     if (window.authenticated) {
         updateLocationWithServer();
     }
-})
+}, 10000)
