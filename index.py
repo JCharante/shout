@@ -237,7 +237,7 @@ def incoming_sms():
             to=phoneNumber
         )
     response = MessagingResponse()
-    response.message("Shout sent!")
+    response.message(f"Shout sent to {len(phoneNumbersInRange)} people nearby")
     return str(response)
 
 if __name__ == "__main__":
