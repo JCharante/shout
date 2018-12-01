@@ -227,19 +227,6 @@ def incoming_sms():
                 "If you want to update your location, you must currently use the web companion. Visit shout.jcharante.com"
             ]))
             return str(response)
-    elif textBody[0:22] == "https://www.google.com":
-        print(textBody)
-        expandedUrl = unshorten_url(textBody.split(' ')[0])
-        print(expandedUrl)
-        temp = re.search('@([0-9]?[0-9]\.[0-9]*),([0-9]?[0-9]\.[0-9]*)', expandedUrl, re.DOTALL)
-        latitude = temp.groups()[0]
-        longitude = temp.groups()[1]
-        userInDB.latitude = latitude
-        userInDB.longitude = longitude
-        session.close()
-        response = MessagingResponse()
-        response.message("Updated your location. Thanks!")
-        return str(response)
 
     # user is signed up and is trying to send a shout
 
