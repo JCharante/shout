@@ -49,7 +49,18 @@ function showSecretCode(code) {
 }
 
 function askServerForNewSession() {
-    fetch('/web/create_session').then(function(response) {
+    fetch('/web/create_session',
+        {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                longitude: window.longitude,
+                latitude: window.latitude
+            })
+        }).then(function(response) {
         return response.json();
     }).then(function(data) {
         jsonData = data;
@@ -98,6 +109,8 @@ function updateLocationWithServer() {
 }
 
 function main() {
+    // Get location
+    getLocation();
     // Check if restoring from previous session
     window.sessionId = localStorage.getItem('sessionId');
     window.authenticated = true;
@@ -122,8 +135,6 @@ function main() {
             }
         })
     }
-    // Get location
-    getLocation();
     // Check if phone has authenticated
     setInterval(function() {
         if (!window.authenticated) {
@@ -135,7 +146,7 @@ function main() {
         if (window.authenticated) {
             updateLocationWithServer();
         }
-    }, 10000);
+    }, 2000);
 }
 
 main();

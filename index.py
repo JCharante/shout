@@ -27,6 +27,8 @@ class WebSessionV1(Base):
     secretCode = Column(Integer)
     pairedWithPhoneNumber = Column(Boolean)
     phoneNumber = Column(Text)
+    longitude = Column(Float)
+    latitude = Column(Float)
 
 
 engine = create_engine(os.environ['DBA'])
@@ -66,7 +68,8 @@ def unshorten_url(url):
 def index():
     return render_template('index.html')
 
-@app.route("/web/create_session")
+
+@app.route("/web/create_session", methods=['GET', 'POST'])
 def web_create_session():
     session = DBSession()
 
@@ -77,12 +80,23 @@ def web_create_session():
     response['sessionId'] = sessionId
     response['secretCode'] = secretCode
 
-    session.add(WebSessionV1(
-        sessionId=sessionId,
-        secretCode=secretCode,
-        pairedWithPhoneNumber=False,
-        phoneNumber=''
-    ))
+    jsonData = request.get_json()
+    if request.method == 'POST' and jsonData is not None and jsonData.get('latitude', -1) != -1 and jsonData.get('longitude', -1) != -1:
+        session.add(WebSessionV1(
+            sessionId=sessionId,
+            secretCode=secretCode,
+            pairedWithPhoneNumber=False,
+            phoneNumber='',
+            latitude=jsonData.get('latitude', -1),
+            longitude=jsonData.get('longitude', -1)
+        ))
+    else:
+        session.add(WebSessionV1(
+            sessionId=sessionId,
+            secretCode=secretCode,
+            pairedWithPhoneNumber=False,
+            phoneNumber=''
+        ))
     session.commit()
     session.close()
     return jsonify(**response)
@@ -226,6 +240,9 @@ def incoming_sms():
                 return str(response)
             web_session.pairedWithPhoneNumber = True
             web_session.phoneNumber = phoneNumberFromTwilio
+            if web_session.longitude != -1 and web_session.latitude != -1:
+                userInDB.latitude = web_session.latitude
+                userInDB.longitude = web_session.longitude
             session.commit()
             session.close()
             response = MessagingResponse()
