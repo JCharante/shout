@@ -1,6 +1,7 @@
 import os
 from flask import Flask, request, redirect
 from twilio.rest import Client
+from twilio.twiml.messaging_response import MessagingResponse
 
 account_sid = os.environ['TWILIO_ACCOUNT_SID']
 auth_token = os.environ['TWILIO_AUTH_TOKEN']
@@ -18,7 +19,10 @@ def incoming_sms():
         from_=os.environ['SHOUT_NUM'],
         to=os.environ['TRANG_NUM']
     )
-    return "I don't know how to reply to your text message"
+    resp = MessagingResponse()
+    resp.message("I don't know how to reply to your text message")
+
+    return str(resp)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)
