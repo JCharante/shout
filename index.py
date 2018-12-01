@@ -87,7 +87,7 @@ class InvalidUsage(Exception):
 def web_status():
     session = DBSession()
 
-    web_session = session.query(WebSessionV1).filter_by(sessionId=request.values.get('sessionId')).first() # type: WebSessionV1
+    web_session = session.query(WebSessionV1).filter_by(sessionId=request.json.get('sessionId')).first() # type: WebSessionV1
     if web_session is None:
         session.close()
         raise InvalidUsage("Invalid sessionId")
