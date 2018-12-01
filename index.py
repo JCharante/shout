@@ -60,6 +60,11 @@ def incoming_sms():
                 response = MessagingResponse()
                 response.message(f"Thanks for signing up. Your shout range is {rangeInMeters}m. Text anytime to send a shout")
                 return str(response)
+            else:
+                session.close()
+                response = MessagingResponse()
+                response.message("Hey, you haven't signed up yet to receive or send shouts. Please reply w/ SIGNUP")
+                return str(response)
 
 
     """
