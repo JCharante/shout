@@ -95,6 +95,7 @@ function updateLocationWithServer() {
             latitude: window.latitude
         })
     });
+}
 
 function main() {
     // Check if restoring from previous session
