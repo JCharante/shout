@@ -97,6 +97,7 @@ def web_status():
         session.close()
         return jsonify(**{
             'valid': False,
+            'reason': 'invalid sessionId'
         })
 
     response = dict()
