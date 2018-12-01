@@ -1,12 +1,3 @@
-/*
-// load session id from storage
-sessionId = localStorage.getItem('sessionId') || null
-
-if (sessionId == null) {
-    fetch()
-}
-*/
-
 function getLocation() {
     if(navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(doSomethingWithPosition);
@@ -45,7 +36,7 @@ function doSomethingWithPosition(position) {
 }
 
 function hideSecretCode(code) {
-    document.getElementById('secretCodePrompt').innerHTML = '';
+    document.getElementById('secretCodePrompt').innerHTML = '<p>Paired with phone!</p>';
 }
 
 function showSecretCode(code) {
@@ -74,7 +65,7 @@ function askServerForStatus() {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            sessionId: localStorage.getItem('sessionId')
+            sessionId: window.sessionId
         })
     }).then(function(response) {
         return response.json();
@@ -94,7 +85,7 @@ function updateLocationWithServer() {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            sessionId: localStorage.getItem('sessionId'),
+            sessionId: window.sessionId,
             longitude: window.longitude,
             latitude: window.latitude
         })
@@ -107,17 +98,28 @@ function updateLocationWithServer() {
     })
 }
 
-window.authenticated = false;
-getLocation();
-askServerForNewSession();
-setInterval(function() {
-    if (!window.authenticated) {
-        askServerForStatus()
+function main() {
+    // Check if restoring from previous session
+    window.sessionId = localStorage.getItem('sessionId');
+    window.authenticated = true;
+    if (window.sessionId == null) { // new session required
+        askServerForNewSession();
+        window.authenticated = false;
     }
-}, 3000);
+    // Get location
+    getLocation();
+    // Check if phone has authenticated
+    setInterval(function() {
+        if (!window.authenticated) {
+            askServerForStatus()
+        }
+    }, 3000);
+    // Upload location every 10s
+    setInterval(function() {
+        if (window.authenticated) {
+            updateLocationWithServer();
+        }
+    }, 10000);
+}
 
-setInterval(function() {
-    if (window.authenticated) {
-        updateLocationWithServer();
-    }
-}, 10000);
+main();
