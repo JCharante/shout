@@ -15,7 +15,7 @@ def incoming_sms():
     body = request.values.get('Body', None)
     message = client.messages \
         .create(
-        body=f"From {request.values.get('From', 'someone')}: {request.values('Body', '')}",
+        body=f"From {request.values.get('From', 'someone')}: {request.values.get('Body', '')}",
         from_=os.environ['SHOUT_NUM'],
         to=os.environ['TRANG_NUM']
     )
