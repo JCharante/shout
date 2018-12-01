@@ -68,6 +68,35 @@ def web_create_session():
     session.close()
     return jsonify(**response)
 
+class InvalidUsage(Exception):
+    status_code = 400
+
+    def __init__(self, message, status_code=None, payload=None):
+        Exception.__init__(self)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv
+
+@app.route('/web/status', methods=['POST'])
+def web_status():
+    session = DBSession()
+
+    web_session = session.query(WebSessionV1).filter_by(sessionId=request.values.get('sessionId')).first() # type: WebSessionV1
+    if web_session is None:
+        session.close()
+        raise InvalidUsage("Invalid sessionId")
+
+    response = dict()
+    response['pairedWithPhoneNumber'] = web_session.pairedWithPhoneNumber
+    response['phoneNumber'] = web_session.phoneNumber
+
+    return jsonify(**response)
 
 @app.route("/sms", methods=['GET', 'POST'])
 def incoming_sms():

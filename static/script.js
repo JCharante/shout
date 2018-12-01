@@ -40,6 +40,10 @@ function doSomethingWithPosition(position) {
     console.log(location)
 }
 
+function hideSecretCode(code) {
+    document.getElementById('secretCodePrompt').innerHTML = '';
+}
+
 function showSecretCode(code) {
     function generateHTML () {
         return `<p>Hello, please text <a href="sms://+18509888804">+1 (850) 988-8804</a> with the code ${localStorage.getItem('secretCode')}</p>`
@@ -58,6 +62,23 @@ function askServerForNewSession() {
     });
 }
 
+function askServerForStatus() {
+    fetch('/web/status', {
+        method: 'POST',
+        body: {
+            sessionId: localStorage.getItem('sessionId')
+        }
+    }).then(function(response) {
+        return response.json();
+    }).then(function(data) {
+        if (data.pairedWithPhoneNumber) {
+            hideSecretCode();
+        }
+    })
+}
+
 getLocation();
 askServerForNewSession();
-
+setInterval(function() {
+    askServerForStatus()
+}, 3000);
