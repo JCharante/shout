@@ -201,34 +201,33 @@ def incoming_sms():
             return str(response)
 
     # user is signed up and is trying to send a shout
+
+    phoneNumbersInRange = []
     if userInDB.shoutRange == -1:
         # User has global shout privileges
-        phoneNumbersInRange = []
-        if userInDB.shoutRange == -1:
-            for user in session.query(UserV1).filter_by(haveSignedUp=True).all(): # type: UserV1
+        for user in session.query(UserV1).filter_by(haveSignedUp=True).all(): # type: UserV1
+            phoneNumbersInRange.append(user.phoneNumber)
+    else:
+        if userInDB.longitude == -1:
+            session.close()
+            response = MessagingResponse()
+            response.message("Sorry, you must set your location first. Reply w/ !help for a list of commands.")
+            return str(response)
+        shouterCoord = (userInDB.latitude, userInDB.longitude)
+        for user in session.query(UserV1).filter_by(haveSignedUp=True).all(): # type: UserV1
+            userCoord = (user.latitude, user.longitude)
+            if geopy.distance.vincenty(shouterCoord, userCoord).m < userInDB.shoutRange:
                 phoneNumbersInRange.append(user.phoneNumber)
-        else:
-            if userInDB.longitude == -1 or userInDB.latitude == -1:
-                session.close()
-                response = MessagingResponse()
-                response.message("Sorry, you must set your location first. Reply w/ !help for a list of commands.")
-                return str(response)
-            shouterCoord = (userInDB.latitude, userInDB.longitude)
-            for user in session.query(UserV1).filter_by(haveSignedUp=True).all(): # type: UserV1
-                userCoord = (user.latitude, user.longitude)
-                if geopy.distance.vincenty(shouterCoord, userCoord).m < userInDB.shoutRange:
-                    phoneNumbersInRange.append(user.phoneNumber)
-        session.close()
-        for phoneNumber in phoneNumbersInRange:
-            message = client.messages.create(
-                body=textBody,
-                from_=os.environ['SHOUT_NUM'],
-                to=phoneNumber
-            )
-        response = MessagingResponse()
-        response.message("Shout sent!")
-        return str(response)
-    return ""
+    session.close()
+    for phoneNumber in phoneNumbersInRange:
+        message = client.messages.create(
+            body=textBody,
+            from_=os.environ['SHOUT_NUM'],
+            to=phoneNumber
+        )
+    response = MessagingResponse()
+    response.message("Shout sent!")
+    return str(response)
 
 if __name__ == "__main__":
     app.run(threaded=True, host='0.0.0.0', port=5000, debug=True)
