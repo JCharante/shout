@@ -83,6 +83,43 @@ class InvalidUsage(Exception):
         rv['message'] = self.message
         return rv
 
+
+@app.route('/web/update/location/gps', methods=['POST'])
+def web_update_location_gps():
+    session = DBSession()
+    json_data = request.get_json()
+
+    if json_data is None:
+        session.close()
+        return jsonify(**{
+            'valid': False,
+            'reason': 'No json in request'
+        })
+    web_session = session.query(WebSessionV1).filter_by(sessionId=json_data.get('sessionId')).first() # type: WebSessionV1
+
+    if web_session is None:
+        session.close()
+        return jsonify(**{
+            'valid': False,
+            'reason': 'invalid sessionId'
+        })
+
+    if web_session.pairedWithPhoneNumber is False:
+        session.close()
+        return jsonify(**{
+            'valid': False,
+            'reason': 'not paired with phone number'
+        })
+
+    phoneNumber = web_session.phoneNumber
+    user = session.query(UserV1).filter_by(phoneNumber=phoneNumber).first() # type: UserV1
+    user.latitude = json_data.get('latitude', 0)
+    user.longitude = json_data.get('longitude', 0)
+
+    response = dict()
+    response['valid'] = True
+    return jsonify(**response)
+
 @app.route('/web/status', methods=['POST'])
 def web_status():
     session = DBSession()

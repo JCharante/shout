@@ -29,6 +29,9 @@ function doSomethingWithPosition(position) {
         latitude: position.coords.latitude
     };
 
+    window.longitude = position.coords.longitude;
+    window.latitude = position.coords.latitude;
+
     let longitude = document.getElementById('longitude');
     let latitude = document.getElementById('latitude');
     let googleMaps = document.getElementById('google-maps');
@@ -36,6 +39,7 @@ function doSomethingWithPosition(position) {
     longitude.innerHTML = position.coords.longitude;
     latitude.innerHTML = position.coords.latitude;
     googleMaps.innerHTML = generateATag("link", generateGoogleMapsLink(position.coords.longitude, position.coords.latitude));
+
 
     console.log(location)
 }
@@ -76,13 +80,43 @@ function askServerForStatus() {
         return response.json();
     }).then(function(data) {
         if (data.pairedWithPhoneNumber) {
+            window.authenticated = true;
             hideSecretCode();
         }
     })
 }
 
+function updateLocationWithServer() {
+    fetch('/web/update/location/gps', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            sessionId: localStorage.getItem('sessionId'),
+            longitude: window.longitude,
+            latitude: window.latitude
+        })
+    }).then(function(response) {
+        return response.json();
+    }).then(function(data) {
+        if (!data.valid) {
+            window.authenticated = false;
+        }
+    })
+}
+
+window.authenticated = false;
 getLocation();
 askServerForNewSession();
 setInterval(function() {
-    askServerForStatus()
+    if (!window.authenticated) {
+        askServerForStatus()
+    }
 }, 3000);
+setInterval(function() {
+    if (window.authenticated) {
+        updateLocationWithServer();
+    }
+})
