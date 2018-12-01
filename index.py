@@ -50,10 +50,9 @@ def web_create_session():
     secretCode = generateSecret()
     sessionId = str(uuid4())
 
-    response = {
-        secretCode: secretCode,
-        sessionId: sessionId
-    }
+    response = dict()
+    response['sessionId'] = sessionId
+    response['secretCode'] = secretCode
 
     session.add(WebSessionV1(
         sessionId=sessionId,
