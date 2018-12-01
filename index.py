@@ -56,7 +56,7 @@ def unshorten_url(url):
         resource += "?" + parsed.query
     h.request('HEAD', resource )
     response = h.getresponse()
-    if response.status/100 == 3 and response.getheader('Location'):
+    if response.status//100 == 3 and response.getheader('Location'):
         return unshorten_url(response.getheader('Location')) # changed to process chains of short urls
     else:
         return url
