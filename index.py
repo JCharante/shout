@@ -81,14 +81,19 @@ def web_create_session():
     response['secretCode'] = secretCode
 
     jsonData = request.get_json()
-    if request.method == 'POST' and jsonData is not None and jsonData.get('latitude', None) is not None and jsonData.get('longitude', None) is not None:
+    if request.method == 'POST' and \
+            jsonData is not None and \
+            jsonData.get('latitude', -1) != -1 and \
+            jsonData.get('latitude', None) is not None and\
+            jsonData.get('longitude', -1) != -1 and \
+            jsonData.get('longitude', None) is not None:
         session.add(WebSessionV1(
             sessionId=sessionId,
             secretCode=secretCode,
             pairedWithPhoneNumber=False,
             phoneNumber='',
-            latitude=jsonData.get('latitude', None),
-            longitude=jsonData.get('longitude', None)
+            latitude=jsonData.get('latitude', -1),
+            longitude=jsonData.get('longitude', -1)
         ))
     else:
         session.add(WebSessionV1(
@@ -183,8 +188,8 @@ def incoming_sms():
                 phoneNumber=phoneNumberFromTwilio,
                 shoutRange=2000,
                 haveSignedUp=True,
-                longitude=None,
-                latitude=None
+                longitude=-1,
+                latitude=-1
             ))
             session.commit()
             session.close()
@@ -199,8 +204,8 @@ def incoming_sms():
                 phoneNumber=phoneNumberFromTwilio,
                 shoutRange=2000,
                 haveSignedUp=False,
-                longitude=None,
-                latitude=None
+                longitude=-1,
+                latitude=-1
             ))
             session.commit()
             session.close()
@@ -240,7 +245,7 @@ def incoming_sms():
                 return str(response)
             web_session.pairedWithPhoneNumber = True
             web_session.phoneNumber = phoneNumberFromTwilio
-            if web_session.longitude is not None and web_session.latitude is not None:
+            if web_session.longitude is not -1 and web_session.latitude is not -1:
                 userInDB.latitude = web_session.latitude
                 userInDB.longitude = web_session.longitude
             session.commit()
@@ -270,7 +275,7 @@ def incoming_sms():
         for user in session.query(UserV1).filter_by(haveSignedUp=True).all(): # type: UserV1
             phoneNumbersInRange.append(user.phoneNumber)
     else:
-        if userInDB.longitude is None:
+        if userInDB.longitude is -1:
             session.close()
             response = MessagingResponse()
             response.message("Sorry, you must set your location first. Reply w/ !help for a list of commands.")
