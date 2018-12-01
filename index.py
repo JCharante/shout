@@ -90,7 +90,8 @@ def web_status():
     if json_data is None:
         session.close()
         return jsonify(**{
-            'valid': False
+            'valid': False,
+            'reason': 'No json in request'
         })
     web_session = session.query(WebSessionV1).filter_by(sessionId=json_data.get('sessionId')).first() # type: WebSessionV1
     if web_session is None:
