@@ -96,6 +96,7 @@ function updateLocationWithServer() {
     }).then(function(data) {
         if (!data.valid) {
             window.authenticated = false;
+            askServerForNewSession()
         }
     })
 }

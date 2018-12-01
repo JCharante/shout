@@ -157,7 +157,7 @@ def incoming_sms():
         session.commit()
         session.close()
         response = MessagingResponse()
-        response.message("Hey this is Shout! Do you want to sign up to receive shouts? If so, reply w/ !signup")
+        response.message("Hey this is Shout! Do you want to sign up to send or receive shouts? If so, reply w/ !signup")
         return str(response)
 
     if userInDB.haveSignedUp is False:
