@@ -89,11 +89,15 @@ def web_status():
     json_data = request.get_json()
     if json_data is None:
         session.close()
-        raise InvalidUsage("Did not post json")
+        return jsonify(**{
+            'valid': False
+        })
     web_session = session.query(WebSessionV1).filter_by(sessionId=json_data.get('sessionId')).first() # type: WebSessionV1
     if web_session is None:
         session.close()
-        raise InvalidUsage("Invalid sessionId")
+        return jsonify(**{
+            'valid': False,
+        })
 
     response = dict()
     response['pairedWithPhoneNumber'] = web_session.pairedWithPhoneNumber
