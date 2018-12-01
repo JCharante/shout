@@ -157,7 +157,7 @@ def incoming_sms():
         session.commit()
         session.close()
         response = MessagingResponse()
-        response.message("Hey this is Shout! Do you want to sign up to receive shouts? If so, reply w/ !SIGNUP")
+        response.message("Hey this is Shout! Do you want to sign up to receive shouts? If so, reply w/ !signup")
         return str(response)
 
     if userInDB.haveSignedUp is False:
@@ -170,7 +170,8 @@ def incoming_sms():
                 response = MessagingResponse()
                 response.message("\n".join([
                     f"Thanks for signing up. Your shout range is {rangeInMeters}m.",
-                    "Before you can send or receive shouts, you must set your location. Visit shout.jcharante.com for continue or type !help for further instructions."
+                    "Before you can send or receive shouts, you must set your location. Visit shout.jcharante.com to set your location.",
+                    "If you need help, reply w/ !help"
                 ]))
                 return str(response)
             else:

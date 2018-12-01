@@ -37,6 +37,7 @@ function doSomethingWithPosition(position) {
 
 function hideSecretCode(code) {
     document.getElementById('secretCodePrompt').innerHTML = '<p>Paired with phone!</p>';
+    document.getElementById('giantCode').innerHTML = '';
 }
 
 function showSecretCode(code) {
@@ -44,6 +45,7 @@ function showSecretCode(code) {
         return `<p>Hello, please text <a href="sms://+18509888804">+1 (850) 988-8804</a> with the code ${localStorage.getItem('secretCode')}</p>`
     }
     document.getElementById('secretCodePrompt').innerHTML = generateHTML();
+    document.getElementById('giantCode').innerHTML = code;
 }
 
 function askServerForNewSession() {
