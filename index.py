@@ -88,12 +88,12 @@ def incoming_sms():
         session.commit()
         session.close()
         response = MessagingResponse()
-        response.message("Hey this is Shout! Do you want to sign up to receive shouts? If so, reply w/ SIGNUP")
+        response.message("Hey this is Shout! Do you want to sign up to receive shouts? If so, reply w/ !SIGNUP")
         return str(response)
 
     if userInDB.haveSignedUp is False:
         if textBody is not None:
-            if textBody.lower() == "signup":
+            if textBody.lower() == "!signup":
                 userInDB.haveSignedUp = True
                 rangeInMeters = userInDB.shoutRange
                 session.commit()
@@ -107,6 +107,26 @@ def incoming_sms():
                 response.message("Hey, you haven't signed up yet to receive or send shouts. Please reply w/ SIGNUP")
                 return str(response)
 
+    # user is signed up, and this is a command
+    if textBody[0:1] == "!":
+        words = textBody.split(' ')
+        if words[0] == "!code":
+            secretCode = int(words[1])
+            web_session = session.query(WebSessionV1).filter_by(secretCode=secretCode).first() # type: WebSessionV1
+            if web_session is None:
+                session.close()
+                response = MessagingResponse()
+                response.message("Sorry, that's not a valid code")
+                return str(response)
+            web_session.pairedWithPhoneNumber = True
+            web_session.phoneNumber = phoneNumberFromTwilio
+            session.commit()
+            session.close()
+            response = MessagingResponse()
+            response.message("Connected to Web Companion!")
+            return str(response)
+
+    # user is signed up and is trying to send a shout
     if userInDB.shoutRange == -1:
         # User has global shout privileges
         phoneNumbersInRange = []
