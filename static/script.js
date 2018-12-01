@@ -42,7 +42,7 @@ function doSomethingWithPosition(position) {
 
 function showSecretCode() {
     function generateHTML () {
-        return `<p>Hello, please text <a href="sms://+18509888804">+1 (850) 988-8804</a> with the code</p>`
+        return `<p>Hello, please text <a href="sms://+18509888804">+1 (850) 988-8804</a> with the code ${localStorage.getItem('secretCode')}</p>`
     }
     document.getElementById('secretCodePrompt').innerHTML = generateHTML();
 }
