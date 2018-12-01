@@ -27,7 +27,7 @@ function doSomethingWithPosition(position) {
     var location = {
         longitude: position.coords.longitude,
         latitude: position.coords.latitude
-    }
+    };
 
     let longitude = document.getElementById('longitude');
     let latitude = document.getElementById('latitude');
@@ -40,7 +40,7 @@ function doSomethingWithPosition(position) {
     console.log(location)
 }
 
-function showSecretCode() {
+function showSecretCode(code) {
     function generateHTML () {
         return `<p>Hello, please text <a href="sms://+18509888804">+1 (850) 988-8804</a> with the code ${localStorage.getItem('secretCode')}</p>`
     }
@@ -49,11 +49,13 @@ function showSecretCode() {
 
 function askServerForNewSession() {
     fetch('/web/create_session').then(function(response) {
-        jsonData = response.json();
+        return response.json();
+    }).then(function(data) {
+        jsonData = data;
         localStorage.setItem('sessionId', jsonData.sessionId);
         localStorage.setItem('secretCode', jsonData.secretCode);
-        showSecretCode();
-    })
+        showSecretCode(jsonData.secretCode);
+    });
 }
 
 getLocation();
