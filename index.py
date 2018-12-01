@@ -81,7 +81,7 @@ def web_create_session():
     response['secretCode'] = secretCode
 
     jsonData = request.get_json()
-    if request.method == 'POST' and jsonData is not None and jsonData.get('latitude', -1) != -1 and jsonData.get('longitude', -1) != -1:
+    if request.method == 'POST' and jsonData is not None and (jsonData.get('latitude', -1) != -1 and jsonData.get('latitude', None) is not None) and (jsonData.get('longitude', -1) != -1 and jsonData.get('longitude', None) is not None):
         session.add(WebSessionV1(
             sessionId=sessionId,
             secretCode=secretCode,
