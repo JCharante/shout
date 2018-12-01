@@ -183,8 +183,8 @@ def incoming_sms():
                 phoneNumber=phoneNumberFromTwilio,
                 shoutRange=2000,
                 haveSignedUp=True,
-                longitude=-1,
-                latitude=-1
+                longitude=None,
+                latitude=None
             ))
             session.commit()
             session.close()
@@ -199,8 +199,8 @@ def incoming_sms():
                 phoneNumber=phoneNumberFromTwilio,
                 shoutRange=2000,
                 haveSignedUp=False,
-                longitude=-1,
-                latitude=-1
+                longitude=None,
+                latitude=None
             ))
             session.commit()
             session.close()
@@ -270,7 +270,7 @@ def incoming_sms():
         for user in session.query(UserV1).filter_by(haveSignedUp=True).all(): # type: UserV1
             phoneNumbersInRange.append(user.phoneNumber)
     else:
-        if userInDB.longitude == -1:
+        if userInDB.longitude is None:
             session.close()
             response = MessagingResponse()
             response.message("Sorry, you must set your location first. Reply w/ !help for a list of commands.")
