@@ -53,6 +53,8 @@ function askServerForNewSession() {
         return response.json();
     }).then(function(data) {
         jsonData = data;
+        window.sessionId = jsonData.sessionId;
+        window.secretCode = jsonData.secretCode;
         localStorage.setItem('sessionId', jsonData.sessionId);
         localStorage.setItem('secretCode', jsonData.secretCode);
         showSecretCode(jsonData.secretCode);
@@ -75,8 +77,7 @@ function askServerForStatus() {
         if (data.pairedWithPhoneNumber) {
             window.authenticated = true;
             hideSecretCode();
-        } else if (!data.valid) {
-            askServerForNewSession();
+            updateLocationWithServer();
         }
     })
 }
@@ -93,23 +94,32 @@ function updateLocationWithServer() {
             longitude: window.longitude,
             latitude: window.latitude
         })
-    }).then(function(response) {
-        return response.json();
-    }).then(function(data) {
-        if (!data.valid) {
-            window.authenticated = false;
-            askServerForNewSession()
-        }
-    })
-}
+    });
 
 function main() {
     // Check if restoring from previous session
     window.sessionId = localStorage.getItem('sessionId');
     window.authenticated = true;
-    if (window.sessionId == null) { // new session required
+    if (window.sessionId == null) { // new session required because none stored
         askServerForNewSession();
         window.authenticated = false;
+    } else {
+        fetch('/web/status', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sessionId: window.sessionId
+            })
+        }).then(function (response) {
+            return response.json();
+        }).then(function(jsonData) {
+            if (!jsonData.valid) {
+                askServerForNewSession();
+            }
+        })
     }
     // Get location
     getLocation();
