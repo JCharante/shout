@@ -283,7 +283,7 @@ def incoming_sms():
         for user in session.query(UserV1).filter_by(haveSignedUp=True).all(): # type: UserV1
             phoneNumbersInRange.append(user.phoneNumber)
     else:
-        if userInDB.longitude is -1:
+        if userInDB.longitude == -1:
             session.close()
             response = MessagingResponse()
             response.message("Sorry, you must set your location first. Reply w/ !help for a list of commands.")
